@@ -32,6 +32,10 @@ operator fun Questionnaire.get(linkId: String): QItem? {
     return allItemsSeq.find { it.linkId == linkId }
 }
 
+operator fun QuestionnaireResponse.get(linkId: String): QRItem? {
+    return allItems.find { it.linkId == linkId }
+}
+
 fun QItem.get(linkId: String): QItem? {
     return allItemsSeq.find { it.linkId == linkId }
 }

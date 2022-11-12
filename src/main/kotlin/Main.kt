@@ -131,7 +131,9 @@ fun Base.toPrettyString(indentation: String = "", multiline: Boolean = true, pri
         } else {
             append("{")
         }
-        append(children().filter { it.hasValues() }.filter { it.isList.not() && it.values.first().isEmpty }.joinToString(listSeperator) {
+        append(children().filter { it.hasValues() }
+//            .filter { it.isList.not() && it.values.first().isEmpty }
+            .joinToString(listSeperator) {
             indent+" "+it.name+": "+
                     if(it.isList) it.values.joinToString(", ", "[", "]") { it.toPrettyString("$indent ", multiline, printType) } else it.values.first().toPrettyString(
                         "$indent ", multiline, printType

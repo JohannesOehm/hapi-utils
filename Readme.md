@@ -1,6 +1,6 @@
 # HAPI-Kotlin-Utils
 Just a collection of functions I often use across my projects.
-Feel free to draw some inspiration!
+Feel free to include or draw some inspiration!
 
 ## Features
 * [Constructor-like functions for commonly used Data Types](#constructor-like-functions)
@@ -8,7 +8,7 @@ Feel free to draw some inspiration!
 * [Create kotlin extension functions for FHIR Extensions](#Extension-properties-for-FHIR-Extensions)  
 * [Conversions between HAPI's `DateType`, `DateTimeType` and `TimeType` and the corresponding `java.time` classes](#time-conversions)
 * [`.toPrettyString()` extension function for logging/debugging purposes](#toprettystring) 
-* Extension functions for Questionnaires: `Questionnaire.allItems`, type aliases `QItem`, `QRItem`, `QRAnswer` for subitems
+* [Extension functions for Questionnaires: `Questionnaire.allItems`, type aliases `QItem`, `QRItem`, `QRAnswer` for subitems](#extensions-on-questionnaire)
 * `.toCoding()` extension function for enums of the `org.hl7.fhir.r4.model.codesystems` package (ObservationCategory, ConditionCategory, ...)
 
 ## Why Kotlin
@@ -37,13 +37,13 @@ observation.getReferenceRangeFirstRep().setHigh(high);
 can be rewritten with Kotlin and this package as 
 
 ```kotlin
-    val observation = Observation().apply {
-        status = Observation.ObservationStatus.FINAL
-        code = CodeableConcept(loinc("29463-7", "Body Weight"))
-        value = UcumQuantity(83.9, "kg")
-        referenceRangeFirstRep.low = UcumQuantity(45.0, "kg")
-        referenceRangeFirstRep.high = UcumQuantity(90.0, "kg")
-    }
+val observation = Observation().apply {
+    status = Observation.ObservationStatus.FINAL
+    code = CodeableConcept(loinc("29463-7", "Body Weight"))
+    value = UcumQuantity(83.9, "kg")
+    referenceRangeFirstRep.low = UcumQuantity(45.0, "kg")
+    referenceRangeFirstRep.high = UcumQuantity(90.0, "kg")
+}
 ```
 
 ## Constructor-like functions
@@ -102,12 +102,39 @@ fun doSomething(qItem: QItem) {
 ## Time conversions
 Use the modern `java.time` package with HAPI:
 ```kotlin
-val javaDateTime = LocalDateTime.of(2022, 1, 1, 12, 12, 12)
-val fhirDateTime = javaDateTime.toFhir()
-val javaDateTime2 = fhirDateTime.toLocalDateTime()
+import org.hl7.fhir.r4.model.*
+import java.time.*
+
+val javaDateTime: LocalDateTime = LocalDateTime.of(2023, 1, 1, 12, 12, 12)
+val fhirDateTime: DateTimeType = javaDateTime.toFhir()
+val javaDateTime2: LocalDateTime = fhirDateTime.toLocalDateTime()
 ```
 
-## toPrettyString
+## toPrettyString()
 HAPIs built-in classes usually don't have a good `toString()`-representation. In theory, you can create a JsonParser instance,
 but you can stringify only IBaseResource, not individual elements. Therefore, this library provides the 
 `.toPrettyString(multiline = true, printType = true)` function on any Element.
+
+```kotlin
+//does not help
+println(patient.name[0].toString()) // 'org.hl7.fhir.r4.model.HumanName@725bef66' 
+
+//does not compile
+val parser = FhirContext.forR4().newJsonParser()
+println(parser.encodeResourceToString(patient.name[0])) // IBaseResource is required
+
+// :) 
+println(patient.name[0].toPrettyString(multiline = false)) // 'HumanName{ family: "Doe",  given: ["John"] }'
+```
+
+## Extensions on Questionnaire
+```kotlin
+//adds some useful alias like 'QRAnswer' for 'QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent'
+
+//adds utility function 'Questionnaire.allItems' and 'QuestionnaireResponse.allItems'
+val item1: QItem? = questionnaire.allItems.find { it.linkId == "1.2.3" }
+//can be also written as 
+val item1 = questionnaire["1.2.3"]
+val item2: QRItem? = questionnaireResponse["1.2.3"]
+```
+
