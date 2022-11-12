@@ -1,0 +1,3 @@
+
+rootProject.name = "hapi-utils"
+
