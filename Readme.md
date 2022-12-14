@@ -48,7 +48,7 @@ val observation = Observation().apply {
 ```
 
 ## Constructor-like functions
-Instead of 
+For commonly used structures. E.g. instead of 
 ```kotlin
 observation.identifier = listOf(Identifier().apply {
     system = "https://my-identifier-system/"
@@ -91,7 +91,7 @@ val observation = Observation().apply {
 ## Extension properties for FHIR Extensions
 In theory, you can [extend existing HAPI classes](https://hapifhir.io/hapi-fhir/docs/model/custom_structures.html) to 
 integrate extensions into the class. To my experience, this is very cumbersome as you have to overwrite also 
-copy() and isEmpty() and is very often not worth the effort. 
+`copy()` and `isEmpty()` and is very often not worth the effort. 
 This library provides a much simpler solution to add properties to HAPI classes:
 ```kotlin
 var QItem.hidden: Boolean? by extension("http://hl7.org/fhir/StructureDefinition/questionnaire-hidden")
@@ -132,12 +132,17 @@ println(patient.name[0].toPrettyString(multiline = false)) // 'HumanName{ family
 ```
 
 ## Extensions on Questionnaire
+Adds some useful type aliases:
 ```kotlin
-//adds some useful alias like 'QRAnswer' for 'QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent'
+typealias QItem = Questionnaire.QuestionnaireItemComponent
+typealias QRItem = QuestionnaireResponse.QuestionnaireResponseItemComponent
+typealias QRAnswer = QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent
+```
 
-//adds utility function 'Questionnaire.allItems' and 'QuestionnaireResponse.allItems'
+Adds utility function 'Questionnaire.allItems' and 'QuestionnaireResponse.allItems'
+```kotlin
 val item1: QItem? = questionnaire.allItems.find { it.linkId == "1.2.3" }
-//can be also written as 
+//can be simplified as 
 val item1 = questionnaire["1.2.3"]
 val item2: QRItem? = questionnaireResponse["1.2.3"]
 ```
@@ -152,9 +157,11 @@ observation.category = listOf(ObservationCategory.ACTIVITY.toCodeableConcept())
 Attention: This is based on reflection and can be called on any enum, not just HAPI enums and is therefore not typesafe.
 
 ## Add primitive values to List
+normally you would have to wrap the value:
 ```kotlin
-//normally you have to do:
 patient.nameFirstRep.given.add(StringType("Jon"))
-// now, this can be written as 
+```
+now you can write:
+```kotlin
 patient.nameFirstRep.given.add("Jon")
 ```
