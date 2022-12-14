@@ -9,7 +9,8 @@ Feel free to include or draw some inspiration!
 * [Conversions between HAPI's `DateType`, `DateTimeType` and `TimeType` and the corresponding `java.time` classes](#time-conversions)
 * [`.toPrettyString()` extension function for logging/debugging purposes](#toprettystring) 
 * [Extension functions for Questionnaires: `Questionnaire.allItems`, type aliases `QItem`, `QRItem`, `QRAnswer` for subitems](#extensions-on-questionnaire)
-* `.toCoding()` extension function for enums of the `org.hl7.fhir.r4.model.codesystems` package (ObservationCategory, ConditionCategory, ...)
+* [`.toCoding()` extension function for enums of the `org.hl7.fhir.r4.model.codesystems` package (ObservationCategory, ConditionCategory, ...)](#tocoding-extension-for-any-enum)
+* [Add primitve values to list without wrapper class](#add-primitive-values-to-list)
 
 ## Why Kotlin
 The following example from the HAPI documentation (https://hapifhir.io/hapi-fhir/docs/model/working_with_resources.html)
@@ -80,7 +81,10 @@ val observation = Observation().apply {
 For common code systems, this can be shortened:
 ```kotlin
 val observation = Observation().apply {
- code = CodeableConcept(loinc("29463-7", "Body Weight"), snomed("27113001", "Body weight (observable entity)"))   
+ code = CodeableConcept(
+     loinc("29463-7", "Body Weight"), 
+     snomed("27113001", "Body weight (observable entity)")
+ )   
 }
 ```
 
@@ -138,3 +142,19 @@ val item1 = questionnaire["1.2.3"]
 val item2: QRItem? = questionnaireResponse["1.2.3"]
 ```
 
+## toCoding() extension for any enum
+Convert the built-in enums for FHIR's built-in CodeSystems into Coding/CodeableConcept  
+
+```kotlin
+observation.category = listOf(ObservationCategory.ACTIVITY.toCodeableConcept())
+```
+
+Attention: This is based on reflection and can be called on any enum, not just HAPI enums and is therefore not typesafe.
+
+## Add primitive values to List
+```kotlin
+//normally you have to do:
+patient.nameFirstRep.given.add(StringType("Jon"))
+// now, this can be written as 
+patient.nameFirstRep.given.add("Jon")
+```
