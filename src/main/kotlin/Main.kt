@@ -45,6 +45,27 @@ fun Period(start: DateTimeType?, end: DateTimeType?) = Period().apply {
 fun Period(start: LocalDateTime?, end: LocalDateTime?) = Period(start?.toFhir(), end?.toFhir())
 
 /**
+ * Allow for usage of Kotlins 'in' operator.
+ * Assumes if end is missing, period is ongoing,
+ * Assumes if start is missing, period has only end
+ */
+operator fun Period.contains(dateTime: java.util.Date): Boolean {
+    if (end == null) {
+        return start <= dateTime
+    }
+    if (start == null) {
+        return end >= dateTime
+    }
+    return start <= dateTime && end >= dateTime //TODO: Handle precision differently
+}
+
+operator fun Period.contains(dateTime: DateTimeType) = contains(dateTime.value)
+
+operator fun Period.contains(dateTime: LocalDateTime) = contains(dateTime.toFhir())
+
+
+
+/**
  * Fake constructor
  */
 fun Range(low: Quantity?, high: Quantity?) = Range().apply {

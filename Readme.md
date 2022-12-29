@@ -12,8 +12,8 @@ Feel free to include or draw some inspiration!
 * [`.toCoding()` extension function for enums of the `org.hl7.fhir.r4.model.codesystems` package (ObservationCategory, ConditionCategory, ...)](#tocoding-extension-for-any-enum)
 * [Add primitve values to list without wrapper class](#add-primitive-values-to-list)
 
-## Why Kotlin
-The following example from the HAPI documentation (https://hapifhir.io/hapi-fhir/docs/model/working_with_resources.html)
+## Why Kotlin?
+Look at the following example from the [HAPI documentation](https://hapifhir.io/hapi-fhir/docs/model/working_with_resources.html):
 ```java
 // Create an Observation instance
 Observation observation = new Observation();
@@ -35,7 +35,7 @@ low.setValue(90).setSystem("http://unitsofmeasure.org").setCode("kg");
 observation.getReferenceRangeFirstRep().setHigh(high);
 ```
 
-can be rewritten with Kotlin and this package as 
+This be easily rewritten with Kotlin and this package as:
 
 ```kotlin
 val observation = Observation().apply {
@@ -46,6 +46,8 @@ val observation = Observation().apply {
     referenceRangeFirstRep.high = UcumQuantity(90.0, "kg")
 }
 ```
+You can clearly see, that the code is much more concise and readable. This is especially important when writing ETL code
+and large transformation pipelines.
 
 ## Constructor-like functions
 For commonly used structures. E.g. instead of 
@@ -159,9 +161,12 @@ Attention: This is based on reflection and can be called on any enum, not just H
 ## Add primitive values to List
 normally you would have to wrap the value:
 ```kotlin
-patient.nameFirstRep.given.add(StringType("Jon"))
+patient.nameFirstRep.given.add(StringType("John"))
 ```
 now you can write:
 ```kotlin
-patient.nameFirstRep.given.add("Jon")
+patient.nameFirstRep.given.add("John")
 ```
+
+## Others 
+* Adds `in` operator to Period datatype: `condition.recordedDate in encounter.actualPeriod` (Caution: Does not account for DateTime precision)
