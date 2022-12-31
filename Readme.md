@@ -1,5 +1,6 @@
 # HAPI-Kotlin-Utils
-Just a collection of functions I often use across my projects.
+Just a collection of functions I often use across my projects. They are intended to remove boilerplate code when 
+populating FHIR resources with the HAPI FHIR library. 
 Feel free to include or draw some inspiration!
 
 ## Features
@@ -10,7 +11,7 @@ Feel free to include or draw some inspiration!
 * [`.toPrettyString()` extension function for logging/debugging purposes](#toprettystring) 
 * [Extension functions for Questionnaires: `Questionnaire.allItems`, type aliases `QItem`, `QRItem`, `QRAnswer` for subitems](#extensions-on-questionnaire)
 * [`.toCoding()` extension function for enums of the `org.hl7.fhir.r4.model.codesystems` package (ObservationCategory, ConditionCategory, ...)](#tocoding-extension-for-any-enum)
-* [Add primitve values to list without wrapper class](#add-primitive-values-to-list)
+* [Add primitive values to list without wrapper class](#add-primitive-values-to-list)
 
 ## Why Kotlin?
 Look at the following example from the [HAPI documentation](https://hapifhir.io/hapi-fhir/docs/model/working_with_resources.html):
@@ -67,6 +68,7 @@ Supported functions:
 * `Range(low, high)`
 * `UcumQuantity(value, unit)`
 * `CodeableConcept(codings...)`
+* `Parameters(map)`
 
 ## CodeSystem utility functions
 Normally, you would have to specify the CodeSystem's URI whenever you create a Coding instance:
@@ -163,10 +165,14 @@ normally you would have to wrap the value:
 ```kotlin
 patient.nameFirstRep.given.add(StringType("John"))
 ```
-now you can write:
+or use the attribute-specific function of the containing datatype:
+```kotlin
+patient.nameFirstRep.addGiven("John")
+```
+you can write now:
 ```kotlin
 patient.nameFirstRep.given.add("John")
 ```
-
 ## Others 
 * Adds `in` operator to Period datatype: `condition.recordedDate in encounter.actualPeriod` (Caution: Does not account for DateTime precision)
+* The `Parameters` class overrides the `get(...)` and `set(...)` operator, e.g.  `val persists: Boolean? = parameters["persist"]`

@@ -39,6 +39,8 @@ var <T : Element> T.dataAbsentReason: DataAbsentReason?
     }
 
 
+//TODO: Add such an extension for slicing, e.g. val icd10 by valueSlice(discriminatorPath)
+
 inline fun <reified T: Any?>extension(extensionUrl: String): ReadWriteProperty<Element, T?> = object: ReadWriteProperty<Element, T?> {
     override operator fun getValue(thisRef: Element, property: kotlin.reflect.KProperty<*>): T? {
         val extension = thisRef.getExtensionByUrl(extensionUrl) ?: return null

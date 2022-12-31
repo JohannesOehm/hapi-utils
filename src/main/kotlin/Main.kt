@@ -63,6 +63,46 @@ operator fun Period.contains(dateTime: DateTimeType) = contains(dateTime.value)
 
 operator fun Period.contains(dateTime: LocalDateTime) = contains(dateTime.toFhir())
 
+fun Parameters(map: Map<String, Any>) = Parameters().apply {
+    for ((name, value) in map) {
+        when(value){
+            is String -> this.addParameter(name, value)
+            is Boolean -> this.addParameter(name, value)
+            is Type -> this.addParameter(name, value)
+            is Int -> this.addParameter(name, IntegerType(value))
+            else -> error("Unknown datatype ${value.javaClass} ($value) for parameter $name")
+        }
+    }
+}
+
+//operator fun Parameters.get(name: String): Type? = this.getParameter(name)
+
+inline operator fun<reified T> Parameters.get(name: String): T? {
+    return if(T::class == Int::class) {
+        (this.getParameter(name) as? IntegerType)?.value as T?
+    } else if(T::class == String::class) {
+            (this.getParameter(name) as? StringType)?.value as T?
+    } else if(T::class == Boolean::class) {
+        (this.getParameter(name) as? BooleanType)?.value as T?
+    } else {
+        this.getParameter(name) as? T
+    }
+}
+
+operator fun Parameters.set(name: String, type: String) {
+    this.setParameter(name, type)
+}
+operator fun Parameters.set(name: String, type: Type) {
+    this.setParameter(name, type)
+}
+operator fun Parameters.set(name: String, type: Boolean) {
+    this.setParameter(name, type)
+}
+operator fun Parameters.set(name: String, type: Int) {
+    this.setParameter(name, IntegerType(type))
+}
+
+
 
 
 /**
@@ -133,7 +173,7 @@ fun Base.toPrettyString(indentation: String = "", multiline: Boolean = true, pri
     }
 
     val indent = if(multiline) indentation else ""
-    val listSeperator = if(multiline) ",\n" else ", "
+    val listSeparator = if(multiline) ",\n" else ", "
     return buildString {
         if (!isPrimitive && printType) {
             append(fhirType())
@@ -154,7 +194,7 @@ fun Base.toPrettyString(indentation: String = "", multiline: Boolean = true, pri
         }
         append(children().filter { it.hasValues() }
 //            .filter { it.isList.not() && it.values.first().isEmpty }
-            .joinToString(listSeperator) {
+            .joinToString(listSeparator) {
             indent+" "+it.name+": "+
                     if(it.isList) it.values.joinToString(", ", "[", "]") { it.toPrettyString("$indent ", multiline, printType) } else it.values.first().toPrettyString(
                         "$indent ", multiline, printType
@@ -176,13 +216,3 @@ private fun Base.stringifyPrimitiveType(): String? {
 }
 
 
-operator fun Parameters.get(name: String): Type? = this.getParameter(name)
-operator fun Parameters.set(name: String, type: String) {
-    this.setParameter(name, type)
-}
-operator fun Parameters.set(name: String, type: Type) {
-    this.setParameter(name, type)
-}
-operator fun Parameters.set(name: String, type: Boolean) {
-    this.setParameter(name, type)
-}
