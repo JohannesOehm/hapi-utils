@@ -67,6 +67,7 @@ Supported functions:
 * `Period(start, end)`
 * `Range(low, high)`
 * `UcumQuantity(value, unit)`
+* `Age(value, unit)`
 * `CodeableConcept(codings...)`
 * `Parameters(map)`
 

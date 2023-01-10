@@ -1,4 +1,5 @@
 import org.hl7.fhir.r4.model.*
+import org.hl7.fhir.r4.model.Enumerations.AgeUnits
 import org.hl7.fhir.r4.model.Identifier.IdentifierUse
 import java.time.LocalDateTime
 
@@ -63,47 +64,6 @@ operator fun Period.contains(dateTime: DateTimeType) = contains(dateTime.value)
 
 operator fun Period.contains(dateTime: LocalDateTime) = contains(dateTime.toFhir())
 
-fun Parameters(map: Map<String, Any>) = Parameters().apply {
-    for ((name, value) in map) {
-        when(value){
-            is String -> this.addParameter(name, value)
-            is Boolean -> this.addParameter(name, value)
-            is Type -> this.addParameter(name, value)
-            is Int -> this.addParameter(name, IntegerType(value))
-            else -> error("Unknown datatype ${value.javaClass} ($value) for parameter $name")
-        }
-    }
-}
-
-//operator fun Parameters.get(name: String): Type? = this.getParameter(name)
-
-inline operator fun<reified T> Parameters.get(name: String): T? {
-    return if(T::class == Int::class) {
-        (this.getParameter(name) as? IntegerType)?.value as T?
-    } else if(T::class == String::class) {
-            (this.getParameter(name) as? StringType)?.value as T?
-    } else if(T::class == Boolean::class) {
-        (this.getParameter(name) as? BooleanType)?.value as T?
-    } else {
-        this.getParameter(name) as? T
-    }
-}
-
-operator fun Parameters.set(name: String, type: String) {
-    this.setParameter(name, type)
-}
-operator fun Parameters.set(name: String, type: Type) {
-    this.setParameter(name, type)
-}
-operator fun Parameters.set(name: String, type: Boolean) {
-    this.setParameter(name, type)
-}
-operator fun Parameters.set(name: String, type: Int) {
-    this.setParameter(name, IntegerType(type))
-}
-
-
-
 
 /**
  * Fake constructor
@@ -118,6 +78,12 @@ fun Range(low: Quantity?, high: Quantity?) = Range().apply {
  */
 fun UcumQuantity(value: Double, unit: String) = Quantity(null, value, "http://unitsofmeasure.org", unit, unit)
 
+fun Age(value: Long, unit: AgeUnits) = Age().apply {
+    system = "http://unitsofmeasure.org"
+    setUnit(unit.display)
+    code = unit.toCode()
+    setValue(value)
+}
 
 /**
  * Fake constructor for logical references
@@ -168,17 +134,17 @@ val DomainResource.patientDefiningElement: Reference
     }
 
 fun Base.toPrettyString(indentation: String = "", multiline: Boolean = true, printType: Boolean = true): String {
-    if(this is PrimitiveType<*> && !this.hasExtension()) {
+    if (this is PrimitiveType<*> && !this.hasExtension()) {
         return stringifyPrimitiveType()!!
     }
 
-    val indent = if(multiline) indentation else ""
-    val listSeparator = if(multiline) ",\n" else ", "
+    val indent = if (multiline) indentation else ""
+    val listSeparator = if (multiline) ",\n" else ", "
     return buildString {
         if (!isPrimitive && printType) {
             append(fhirType())
         }
-        if(isPrimitive) {
+        if (isPrimitive) {
             append(fhirType())
             append("(")
             append(stringifyPrimitiveType())
@@ -195,11 +161,18 @@ fun Base.toPrettyString(indentation: String = "", multiline: Boolean = true, pri
         append(children().filter { it.hasValues() }
 //            .filter { it.isList.not() && it.values.first().isEmpty }
             .joinToString(listSeparator) {
-            indent+" "+it.name+": "+
-                    if(it.isList) it.values.joinToString(", ", "[", "]") { it.toPrettyString("$indent ", multiline, printType) } else it.values.first().toPrettyString(
-                        "$indent ", multiline, printType
-                    ) })
-        if(multiline){
+                indent + " " + it.name + ": " +
+                        if (it.isList) it.values.joinToString(", ", "[", "]") {
+                            it.toPrettyString(
+                                "$indent ",
+                                multiline,
+                                printType
+                            )
+                        } else it.values.first().toPrettyString(
+                            "$indent ", multiline, printType
+                        )
+            })
+        if (multiline) {
             append("\n")
         } else {
             append(" ")
